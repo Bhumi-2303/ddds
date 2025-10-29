@@ -1,0 +1,28 @@
+# ===== Core Deep Learning =====
+tensorflow>=2.17.0
+keras>=3.4.0
+
+# ===== Computer Vision =====
+opencv-python
+opencv-contrib-python
+
+# ===== Data Handling =====
+numpy>=1.26.0
+pandas>=2.2.0
+
+# ===== Visualization =====
+matplotlib
+seaborn
+
+# ===== Model Utilities =====
+scikit-learn
+imutils
+
+# ===== Environment / Progress =====
+tqdm
+pillow
+h5py
+
+# ===== Optional but Useful =====
+# For managing paths and configs
+python-dotenv
