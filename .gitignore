@@ -1,0 +1,64 @@
+# =============================
+# Python Bytecode and Caches
+# =============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =============================
+# Virtual Environment folders
+# =============================
+ddd_env/
+venv/
+env/
+*.env
+
+# =============================
+# OS / IDE Specific
+# =============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =============================
+# Logs and Checkpoints
+# =============================
+*.log
+*.out
+*.err
+checkpoints/
+*.ckpt
+*.ckpt.*
+
+# =============================
+# Dataset and Large Files
+# =============================
+dataset/
+personalized_data/
+data/
+tmp/
+*.zip
+*.tar
+*.tar.gz
+
+# =============================
+# Trained Models
+# =============================
+models/*.h5
+models/*.hdf5
+models/*.tflite
+models/*.pb
+
+# =============================
+# Jupyter / Colab
+# =============================
+.ipynb_checkpoints/
+*.ipynb
+
+# =============================
+# Others
+# =============================
+*.bak
+*.swp
+*.swo
