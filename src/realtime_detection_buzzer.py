@@ -1,165 +1,138 @@
 import cv2
 import dlib
-import numpy as np
-import pandas as pd
-import datetime
 import pygame
-import time
+import numpy as np
 from scipy.spatial import distance as dist
-from tensorflow.keras.models import load_model
+from datetime import datetime
+import pandas as pd
 import os
+from tensorflow.keras.models import load_model
 
-# ================================
-# 🔊 Initialize pygame for buzzer
-# ================================
+# ==== Initialize Pygame for Buzzer ====
 pygame.mixer.init()
-pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), "buzzer.mp3"))
+pygame.mixer.music.load("buzzer.mp3")
 
-# ================================
-# 🧠 Load pre-trained model
-# ================================
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "../models/mobilenetv2_base.h5")
-model = load_model(MODEL_PATH)
+# ==== Paths ====
+MODEL_PATH = "../models/mobilenetv2_base.h5"
+PREDICTOR_PATH = "../models/shape_predictor_68_face_landmarks.dat"
+LOG_PATH = "../logs/driver_history.csv"
 
-# ================================
-# 🧍 Face detection + landmarks
-# ================================
-PREDICTOR_PATH = os.path.join(os.path.dirname(__file__), "../models/shape_predictor_68_face_landmarks.dat")
+# ==== Load Models ====
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(PREDICTOR_PATH)
+model = load_model(MODEL_PATH)
 
-# ================================
-# 🗂️ Directory setup
-# ================================
-SELF_LEARNING_DIR = os.path.join(os.path.dirname(__file__), "../personalized_data")
-os.makedirs(SELF_LEARNING_DIR, exist_ok=True)
+# ==== EAR & MAR Thresholds ====
+EYE_AR_THRESH = 0.25
+EYE_AR_CONSEC_FRAMES = 15
+MOUTH_AR_THRESH = 0.6
 
-HISTORY_FILE = os.path.join(os.path.dirname(__file__), "../driver_history.csv")
-if not os.path.exists(HISTORY_FILE):
-    pd.DataFrame(columns=["Timestamp", "Status"]).to_csv(HISTORY_FILE, index=False)
+COUNTER = 0
+ALARM_ON = False
 
-# ================================
-# 📏 Landmark index definitions
-# ================================
-LEFT_EYE = list(range(36, 42))
-RIGHT_EYE = list(range(42, 48))
-MOUTH = list(range(48, 68))
-
-# ================================
-# 📐 Helper functions
-# ================================
+# ==== Utility Functions ====
 def eye_aspect_ratio(eye):
     A = dist.euclidean(eye[1], eye[5])
     B = dist.euclidean(eye[2], eye[4])
     C = dist.euclidean(eye[0], eye[3])
-    return (A + B) / (2.0 * C)
+    ear = (A + B) / (2.0 * C)
+    return ear
 
 def mouth_aspect_ratio(mouth):
     A = dist.euclidean(mouth[2], mouth[10])
     B = dist.euclidean(mouth[4], mouth[8])
     C = dist.euclidean(mouth[0], mouth[6])
-    return (A + B) / (2.0 * C)
+    mar = (A + B) / (2.0 * C)
+    return mar
 
-# ================================
-# ⚙️ Thresholds and initialization
-# ================================
-EYE_THRESH = 0.25
-MOUTH_THRESH = 0.70
-EYE_FRAMES = 15
+def log_event(event, details=""):
+    os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-frame_counter = 0
-status = "Normal"
+    df = pd.DataFrame([[time, event, details]], columns=["Time", "Event", "Details"])
+    if not os.path.exists(LOG_PATH):
+        df.to_csv(LOG_PATH, index=False)
+    else:
+        df_existing = pd.read_csv(LOG_PATH)
+        df_combined = pd.concat([df_existing, df]).tail(20)  # Keep last 20 events
+        df_combined.to_csv(LOG_PATH, index=False)
+
+def play_buzzer():
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.play()
+
+# ==== Main Detection Loop ====
 cap = cv2.VideoCapture(0)
-buzzer_on = False
-buzzer_start_time = 0
+if not cap.isOpened():
+    print("⚠️ Camera not detected. Please check connection.")
+    exit()
 
-# ================================
-# 🚘 Main loop
-# ================================
+print("🔵 Driver Drowsiness Detection System Started...")
+
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = detector(gray)
+    faces = detector(gray, 0)
 
     for face in faces:
-        landmarks = predictor(gray, face)
+        shape = predictor(gray, face)
+        shape_np = np.zeros((68, 2), dtype=int)
+        for i in range(68):
+            shape_np[i] = (shape.part(i).x, shape.part(i).y)
 
-        left_eye = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in LEFT_EYE])
-        right_eye = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in RIGHT_EYE])
-        mouth = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in MOUTH])
+        leftEye = shape_np[42:48]
+        rightEye = shape_np[36:42]
+        mouth = shape_np[48:68]
 
-        leftEAR = eye_aspect_ratio(left_eye)
-        rightEAR = eye_aspect_ratio(right_eye)
+        leftEAR = eye_aspect_ratio(leftEye)
+        rightEAR = eye_aspect_ratio(rightEye)
         ear = (leftEAR + rightEAR) / 2.0
         mar = mouth_aspect_ratio(mouth)
 
-        # =============================
-        # 🚨 Detection conditions
-        # =============================
-        if ear < EYE_THRESH:
-            frame_counter += 1
-            if frame_counter >= EYE_FRAMES:
-                status = "Drowsy"
-                cv2.putText(frame, "DROWSINESS ALERT!", (50, 100),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
-                if not buzzer_on:
-                    pygame.mixer.music.play()
-                    buzzer_on = True
-                    buzzer_start_time = time.time()
-
-        elif mar > MOUTH_THRESH:
-            status = "Yawning"
-            cv2.putText(frame, "YAWNING DETECTED!", (50, 100),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 3)
-            if not buzzer_on:
-                pygame.mixer.music.play()
-                buzzer_on = True
-                buzzer_start_time = time.time()
-
+        # ==== Check for Drowsiness ====
+        if ear < EYE_AR_THRESH:
+            COUNTER += 1
+            if COUNTER >= EYE_AR_CONSEC_FRAMES:
+                if not ALARM_ON:
+                    ALARM_ON = True
+                    play_buzzer()
+                    log_event("Drowsy", f"Eyes closed for {COUNTER/10:.1f}s")
         else:
-            frame_counter = 0
-            status = "Normal"
+            COUNTER = 0
+            ALARM_ON = False
 
-        # Draw feature outlines
-        cv2.polylines(frame, [left_eye], True, (0, 255, 0), 1)
-        cv2.polylines(frame, [right_eye], True, (0, 255, 0), 1)
-        cv2.polylines(frame, [mouth], True, (255, 255, 0), 1)
+        # ==== Check for Yawn ====
+        if mar > MOUTH_AR_THRESH:
+            if 'yawn_count' not in locals():
+                yawn_count = 0
+                last_yawn_time = datetime.now()
+            
+            time_diff = (datetime.now() - last_yawn_time).seconds
+            if time_diff > 30:  # reset counter every 30 seconds
+                yawn_count = 0
+            
+            yawn_count += 1
+            last_yawn_time = datetime.now()
+            log_event("Yawn", f"Yawn #{yawn_count} | MAR={mar:.2f}")
 
-    # Stop buzzer after 2 seconds
-    if buzzer_on and (time.time() - buzzer_start_time > 2):
-        pygame.mixer.music.stop()
-        buzzer_on = False
+            if yawn_count >= 6:
+                play_buzzer()
+                log_event("Alert", f"6 yawns detected within short time!")
+                yawn_count = 0  # reset counter after buzzer
 
-    # Display current status
-    cv2.putText(frame, f"Status: {status}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+    # ==== Display Frame ====
+    cv2.putText(frame, "Status: Drowsy" if ALARM_ON else "Status: Normal",
+                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+                (0, 0, 255) if ALARM_ON else (0, 255, 0), 2)
 
     cv2.imshow("Driver Drowsiness Detection", frame)
 
-    # =============================
-    # 🧾 Save driver history
-    # =============================
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    df = pd.DataFrame([[current_time, status]], columns=["Timestamp", "Status"])
-    df.to_csv(HISTORY_FILE, mode='a', header=False, index=False)
-
-    # =============================
-    # 🧠 Save self-learning data
-    # =============================
-    if status != "Normal":
-        filename = os.path.join(SELF_LEARNING_DIR, f"{status}_{current_time.replace(':', '-')}.jpg")
-        cv2.imwrite(filename, frame)
-
-    # Exit on pressing 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# ================================
-# 🧹 Cleanup
-# ================================
 cap.release()
 cv2.destroyAllWindows()
 pygame.mixer.quit()

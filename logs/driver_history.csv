@@ -1,0 +1,21 @@
+Time,Event,Details
+2025-10-29 22:15:48,Yawn,MAR=0.68
+2025-10-29 22:15:49,Yawn,MAR=0.69
+2025-10-29 22:15:49,Yawn,MAR=0.65
+2025-10-29 22:15:49,Yawn,MAR=0.61
+2025-10-29 22:15:49,Yawn,MAR=0.62
+2025-10-29 22:15:58,Drowsy,Eyes closed for 1.5s
+2025-10-29 22:19:19,Yawn,Yawn #1 | MAR=0.68
+2025-10-29 22:19:19,Yawn,Yawn #2 | MAR=0.60
+2025-10-29 22:19:19,Yawn,Yawn #3 | MAR=0.61
+2025-10-29 22:19:19,Alert,3 yawns detected within short time!
+2025-10-29 22:19:28,Yawn,Yawn #1 | MAR=0.62
+2025-10-29 22:19:57,Drowsy,Eyes closed for 1.5s
+2025-10-29 22:20:04,Yawn,Yawn #1 | MAR=0.61
+2025-10-29 22:20:05,Yawn,Yawn #2 | MAR=0.61
+2025-10-29 22:20:05,Yawn,Yawn #3 | MAR=0.67
+2025-10-29 22:20:05,Alert,3 yawns detected within short time!
+2025-10-29 22:22:55,Yawn,Yawn #1 | MAR=0.67
+2025-10-29 22:22:55,Yawn,Yawn #2 | MAR=0.64
+2025-10-29 22:22:56,Yawn,Yawn #3 | MAR=0.61
+2025-10-29 22:22:56,Yawn,Yawn #4 | MAR=0.62

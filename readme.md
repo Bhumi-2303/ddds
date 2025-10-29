@@ -133,6 +133,8 @@ After training, the model will be saved as:
 
 models/mobilenetv2_base.h5
 
+“Download shape_predictor_68_face_landmarks.dat from the official dlib model repository and place it inside the /models folder.”
+
 👤 Personalized Model (Driver-Specific Fine-Tuning)
 
 You can fine-tune the model for a specific driver using personal images.

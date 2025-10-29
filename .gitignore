@@ -49,6 +49,7 @@ models/*.h5
 models/*.hdf5
 models/*.tflite
 models/*.pb
+models/shape_predictor_68_face_landmarks.dat
 
 # =============================
 # Jupyter / Colab
