@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 # Load your trained model
-model = load_model("../models/personalized_model.h5")
+model = load_model("../models/mobilenetv2_base.h5")
 
 labels = ["closed_eyes", "no_yawn", "open_eyes", "yawn"]
 

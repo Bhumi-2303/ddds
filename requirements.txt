@@ -5,10 +5,13 @@ keras>=3.4.0
 # ===== Computer Vision =====
 opencv-python
 opencv-contrib-python
+dlib
+imutils
 
 # ===== Data Handling =====
 numpy>=1.26.0
 pandas>=2.2.0
+joblib
 
 # ===== Visualization =====
 matplotlib
@@ -16,13 +19,12 @@ seaborn
 
 # ===== Model Utilities =====
 scikit-learn
-imutils
+h5py
+
+# ===== Sound and Alerts =====
+pygame
 
 # ===== Environment / Progress =====
 tqdm
 pillow
-h5py
-
-# ===== Optional but Useful =====
-# For managing paths and configs
 python-dotenv
