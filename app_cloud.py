@@ -134,26 +134,67 @@ else:
     # ---------------------- SIMULATION MODE ----------------------
     st.subheader("🎛️ Drowsiness Simulation Mode")
     st.markdown("Use the sliders below to simulate **Eye Aspect Ratio (EAR)** and **Mouth Aspect Ratio (MAR)** readings.")
-    
+
     with st.container(border=True):
         ear = st.slider("👁️ Eye Aspect Ratio (EAR)", 0.0, 0.5, 0.3, 0.01)
+        st.caption("👁️ **Normal EAR:** 0.25–0.30 → Eyes Open | <0.20 → Eyes Closed (Possible Drowsiness)")
         mar = st.slider("👄 Mouth Aspect Ratio (MAR)", 0.0, 1.0, 0.4, 0.01)
+        st.caption("👄 **Normal MAR:** 0.35–0.55 → Normal | >0.6 → Yawning or Drowsy")
+
         simulate = st.button("🚀 Run Simulation")
 
         if simulate:
             st.write("Simulating detection...")
             time.sleep(1)
-            if ear < 0.25:
-                confidence = random.randint(75, 95)
-                st.error(f"⚠️ Drowsiness Detected! (Confidence: {confidence}%)")
+
+            if ear < 0.25 and mar > 0.6:
+                confidence = random.randint(85, 98)
+
+                # 🚨 Blinking red alert banner
+                st.markdown("""
+                <style>
+                @keyframes blink {
+                    0% {opacity: 1;}
+                    50% {opacity: 0;}
+                    100% {opacity: 1;}
+                }
+                .blink {
+                    animation: blink 1s infinite;
+                    color: red;
+                    font-weight: bold;
+                    font-size: 22px;
+                    text-align: center;
+                }
+                </style>
+                <div class="blink">🚨 DROWSY ALERT! PLEASE WAKE UP! 🚨</div>
+                """, unsafe_allow_html=True)
+
+                st.error(f"⚠️ Drowsiness Detected!\n\n**EAR:** {ear:.2f} | **MAR:** {mar:.2f}\nConfidence: {confidence}%")
                 st.progress(confidence)
+
+                # 🔊 Audio alert
+                st.markdown(
+                    """
+                    <audio autoplay>
+                        <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+                    </audio>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif ear < 0.25:
+                confidence = random.randint(75, 95)
+                st.warning(f"😴 Eyes Closing Detected!\n\n**EAR:** {ear:.2f}\nConfidence: {confidence}%")
+                st.progress(confidence)
+
             elif mar > 0.6:
                 confidence = random.randint(65, 85)
-                st.warning(f"😮 Yawning Detected! (Confidence: {confidence}%)")
+                st.warning(f"😮 Yawning Detected!\n\n**MAR:** {mar:.2f}\nConfidence: {confidence}%")
                 st.progress(confidence)
+
             else:
                 confidence = random.randint(80, 98)
-                st.success(f"✅ Driver is Attentive! (Confidence: {confidence}%)")
+                st.success(f"✅ Driver is Attentive!\n\n**EAR:** {ear:.2f} | **MAR:** {mar:.2f}\nConfidence: {confidence}%")
                 st.progress(confidence)
 
 # ---------------------- INFO SECTION ----------------------
@@ -165,7 +206,23 @@ with st.expander("🔍 How Detection Works"):
     2. Identify **eye** and **mouth** regions.  
     3. Compute their relative height/width ratios.  
     4. If eyes are too narrow or mouth too open → mark as **Drowsy**.  
-    5. Generate a confidence score to indicate certainty.
+    5. Generate a confidence score to indicate certainty.  
+    6. Audio + visual alert triggers when drowsiness is detected.
+    """)
+
+with st.expander("📘 EAR & MAR Calculation Details"):
+    st.markdown("""
+    **👁️ Eye Aspect Ratio (EAR):**
+    EAR = (‖p2−p6‖ + ‖p3−p5‖) / (2 × ‖p1−p4‖)
+
+    - p1–p6 are specific eye landmarks from the face mesh.  
+    - When eyes close, vertical distances shrink → EAR ↓  
+
+    **👄 Mouth Aspect Ratio (MAR):**
+    MAR = (‖p3−p9‖ + ‖p4−p8‖ + ‖p5−p7‖) / (2 × ‖p1−p11‖)
+
+    - Landmarks correspond to top/bottom lip positions.  
+    - When mouth opens (yawning), vertical gap increases → MAR ↑
     """)
 
 st.markdown("---")
