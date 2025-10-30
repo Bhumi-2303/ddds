@@ -1,199 +1,162 @@
 # 🚗 Driver Drowsiness Detection System (DDDS)
 
-An AI-powered deep learning system that detects **driver fatigue and drowsiness** using **MobileNetV2** and **Computer Vision** techniques.  
-Developed as part of the **Design Engineering Project (3150001)** under **Gujarat Technological University (GTU)** at **R.N.G. Patel Institute of Technology (RNGPIT)**.
+A real-time **Driver Drowsiness Detection System** built with **Deep Learning**, **Computer Vision**, and **Streamlit** for interactive monitoring and alerting. The system detects signs of drowsiness using **eye aspect ratio (EAR)** and **mouth aspect ratio (MAR)**, triggering a buzzer alert when fatigue is detected.
 
 ---
 
-## 🧠 Overview
+## 🧠 Features
 
-Driver drowsiness is a major cause of road accidents.  
-This project monitors a driver's facial expressions in real time and identifies signs of fatigue such as **eye closure** or **yawning**.
+* 🔍 Real-time face and eye detection using **dlib** and **OpenCV**
+* 💤 EAR & MAR calculation to detect drowsiness and yawning
+* 🔔 Buzzer alert via **pygame** when driver is drowsy
+* 📊 Live monitoring dashboard with:
 
-If the model detects drowsiness, it can be configured to alert the driver immediately — helping to prevent accidents and save lives.
-
----
-
-## 🏗️ System Workflow
-
-1. **Dataset Preparation**  
-   - Dataset divided into `train`, `val`, and `test` sets.
-   - Each contains 4 subcategories:  
-     `open_eyes`, `closed_eyes`, `yawn`, `no_yawn`.
-
-2. **Model Training (Base Model)**  
-   - MobileNetV2 (transfer learning) trained on Kaggle dataset.
-
-3. **Personalization**  
-   - The base model is fine-tuned using a few driver-specific images for better accuracy.
-
-4. **Real-Time Detection**  
-   - The trained model is used with OpenCV to detect drowsiness from a webcam feed in real time.
+  * Drowsiness counter
+  * Real-time status (Awake / Drowsy)
+  * EAR, MAR, and detection summary
+* 🌐 Streamlit-based interface for deployment
+* 🧩 Supports personalized model training
 
 ---
 
-## 🗂️ Project Structure
+## 🏗️ Project Structure
 
+```
 DDDS/
 │
-├── dataset/
-│ ├── train/
-│ ├── val/
-│ └── test/
-│
-├── personalized_data/
-│ ├── open_eyes/
-│ ├── closed_eyes/
-│ ├── yawn/
-│ └── no_yawn/
-│
+├── app.py                      # Main Streamlit application
 ├── models/
-│ ├── mobilenetv2_base.h5
-│ └── personalized_model.h5
-│
+│   ├── mobilenetv2_base.h5     # CNN model for feature extraction
+│   └── shape_predictor_68_face_landmarks.dat  # Dlib facial landmark model
 ├── src/
-│ ├── train_model.py
-│ ├── personalized_training.py
-│ ├── realtime_detection.py
-│ └── utils.py
-│
-├── requirements.txt
-├── download_dataset.sh
+│   ├── realtime_detection.py
+│   ├── realtime_detection_buzzer.py
+│   ├── train_model.py
+│   ├── personalized_training.py
+│   └── buzzer.mp3
+├── dataset/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── logs/
+│   └── driver_history.csv      # Record of driver activity
+├── readme.md                   # Documentation (this file)
+├── requirements.txt            # Python dependencies
 ├── .gitignore
-└── README.md
-
+└── download_dataset.sh         # Optional dataset download script
+```
 
 ---
 
-## ⚙️ Requirements
+## ⚙️ Installation
 
-| Tool | Recommended Version |
-|------|----------------------|
-| **Python** | 3.10.x |
-| **TensorFlow** | ≥ 2.17.0 |
-| **Keras** | ≥ 3.4.0 |
-| **OpenCV** | ≥ 4.9.0 |
-| **NumPy** | ≥ 1.26 |
-| **scikit-learn** | ≥ 1.5 |
+### 1️⃣ Clone the Repository
 
-Install all dependencies with:
+```bash
+git clone https://github.com/<your-username>/ddds.git
+cd ddds
+```
+
+### 2️⃣ Create Virtual Environment
+
+```bash
+python3 -m venv ddd_env
+source ddd_env/bin/activate  # for Linux / macOS
+# OR
+ddd_env\Scripts\activate     # for Windows
+```
+
+### 3️⃣ Install Dependencies
+
 ```bash
 pip install -r requirements.txt
+```
 
-📦 Dataset
-📘 Dataset Source
+### 4️⃣ Run the Application
 
-This project uses the Drowsiness Detection Dataset from Kaggle:
+```bash
+streamlit run app.py
+```
 
-https://www.kaggle.com/datasets/hoangtung719/drowsiness-dataset
+---
 
-It contains four categories:
+## 🧩 Dataset
 
-open_eyes
+Dataset used: [Drowsiness Dataset – Kaggle](https://www.kaggle.com/datasets/hoangtung719/drowsiness-dataset)
 
-closed_eyes
+* The dataset includes **open-eye, closed-eye, and yawning** images.
+* The model was trained on a **MobileNetV2** base with fine-tuned layers.
 
-yawn
+---
 
-no_yawn
+## 🔊 Model Files
 
-Each image is labeled and divided into train, val, and test folders.
+Make sure these model files exist in the `models/` directory:
 
-⚡ Manual Setup (if you already have the dataset)
+* `mobilenetv2_base.h5`
+* `shape_predictor_68_face_landmarks.dat`
 
-Simply place your extracted dataset folder inside the project like this:
+If they exceed 100MB (for Streamlit Cloud):
+Add auto-download logic in `app.py` using Google Drive / Hugging Face.
 
-DDDS/dataset/
-    train/
-    val/
-    test/
+---
 
-🧩 Automatic Download (for new users)
+## ☁️ Deployment (Streamlit Cloud)
 
-If the dataset is not present, you can automatically download it from Kaggle using the provided script:
+1. Push your project to GitHub.
+2. Go to [Streamlit Cloud](https://share.streamlit.io).
+3. Create a new app → Select repo → Set `app.py` as entry file.
+4. Deploy 🚀
 
-bash download_dataset.sh
+If large model files are missing, Streamlit will show a warning message.
 
-The script will:
+---
 
-Download the dataset from Kaggle
+## 🧠 How It Works
 
-Unzip it
+1. Captures frames from webcam.
+2. Detects facial landmarks (eyes & mouth).
+3. Calculates EAR & MAR values.
+4. Triggers buzzer if eyes are closed or yawning persists.
+5. Displays real-time drowsiness status on Streamlit dashboard.
 
-Organize it inside the dataset/ folder
+---
 
-🧩 Model Training
+## 📸 Screenshots (Optional)
 
-To train the MobileNetV2 base model on your dataset:
+* Live dashboard with EAR/MAR visualization
+* Status indicators (Awake / Drowsy)
+* Alert buzzer in action
 
-cd src
-python train_model.py
+---
 
-After training, the model will be saved as:
+## 🧰 Tech Stack
 
-models/mobilenetv2_base.h5
+* **Python 3.10**
+* **OpenCV**
+* **dlib**
+* **TensorFlow / Keras**
+* **Streamlit**
+* **pygame**
+* **NumPy / imutils**
 
-“Download shape_predictor_68_face_landmarks.dat from the official dlib model repository and place it inside the /models folder.”
+---
 
-👤 Personalized Model (Driver-Specific Fine-Tuning)
+## 🧑‍💻 Contributors
 
-You can fine-tune the model for a specific driver using personal images.
+**Bhavini Chauhan**
+3rd-year IT Engineering Student
+Project: Driver Drowsiness Detection System
+GTU — RNGPIT
 
-Create a new folder:
+---
 
-DDDS/personalized_data/
+## 📄 License
 
+This project is for educational purposes under the GNU GPL v3 license.
 
-Add your own photos in these 4 categories:
+---
 
-open_eyes/
+### ⭐ Show your support
 
-closed_eyes/
-
-yawn/
-
-no_yawn/
-
-Run:
-
-python personalized_training.py
-
-After training, a new model will be saved as:
-
-models/personalized_model.h5
-
-🎥 Real-Time Detection
-
-Once the model is ready, you can test it live using your webcam:
-
-python realtime_detection.py
-
-A window will appear showing:
-
-The driver’s live face
-
-The detected state (e.g., "Closed Eyes", "Yawn")
-
-Press Q to quit.
-
-⚡ Features
-
-Real-time detection using OpenCV
-
-MobileNetV2 backbone for lightweight performance
-
-Transfer learning for quick training
-
-Personalized fine-tuning for specific drivers
-
-Compatible with Raspberry Pi (TensorFlow Lite)
-
-🔮 Future Scope
-
-Eye blink and yawn frequency tracking
-
-Automatic alarm/buzzer alerts (GPIO on Raspberry Pi)
-
-Cloud analytics for fleet monitoring
-
-Mobile app interface for safety stats
+If you found this project helpful, consider giving it a star ⭐ on GitHub!
