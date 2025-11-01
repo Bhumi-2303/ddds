@@ -53,7 +53,7 @@ DDDS/
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/ddds.git
+git clone https://github.com/<Bhumi-2303>/ddds.git
 cd ddds
 ```
 
